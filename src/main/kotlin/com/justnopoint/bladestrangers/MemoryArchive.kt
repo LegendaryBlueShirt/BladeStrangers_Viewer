@@ -1,11 +1,12 @@
 package com.justnopoint.bladestrangers
 
+import com.justnopoint.`interface`.FileSystem
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.RandomAccessFile
 import java.nio.charset.StandardCharsets
 
-class MemoryArchive(memfs: File, membody: File) {
+class MemoryArchive(memfs: File, membody: File): FileSystem {
     data class MemFile(val fname: String, val offset: Long, val size: Int)
 
     private val archive: RandomAccessFile = RandomAccessFile(membody, "r")
@@ -85,13 +86,13 @@ class MemoryArchive(memfs: File, membody: File) {
         return files[index]
     }
 
-    fun getRaniFile(path: String): RaniFile? {
+    override fun getRaniFile(path: String): RaniFile? {
         getFile(path)?.let {
             return RaniFile(archive, it.offset)
         }?: return null
     }
 
-    fun getRboxFile(path: String): RboxFile? {
+    override fun getRboxFile(path: String): RboxFile? {
         getFile(path)?.let {
             return RboxFile(archive, it.offset)
         }?: return null

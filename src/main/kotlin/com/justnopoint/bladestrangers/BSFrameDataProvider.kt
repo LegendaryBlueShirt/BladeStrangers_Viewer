@@ -6,20 +6,23 @@ import com.justnopoint.util.createIntPalette
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
-import javafx.scene.paint.Paint
 import java.io.File
 
 class BSFrameDataProvider(bsHome: File): FrameDataProvider, FrameRenderer {
-    private val archive: MemoryArchive
+    private val archive: FileSystem
     var rani: RaniFile? = null
     private var rbox: RboxFile? = null
     private var sprites = HashMap<Int, List<Image>>()
 
     init {
-        if(!File(bsHome, "chara.memfs").exists()) {
-            throw Exception("Attempted to load folder without chara.memfs")
+        if(File(bsHome, "chara.memfs").exists()) {
+            archive = MemoryArchive.get(File(bsHome, "chara.memfs"))
+        } else if(File(bsHome, "chara").exists()) {
+            archive = FolderArchive(File(bsHome, "chara"))
+        } else {
+            throw Exception("Attempted to load folder without chara or chara.memfs")
         }
-        archive = MemoryArchive.get(File(bsHome, "chara.memfs"))
+
     }
 
     companion object {
@@ -28,10 +31,19 @@ class BSFrameDataProvider(bsHome: File): FrameDataProvider, FrameRenderer {
             if(File(currentFolder, "fsroot").exists()) {
                 currentFolder = File(currentFolder, "fsroot")
             }
+            if(File(currentFolder, "romfs").exists()) {
+                currentFolder = File(currentFolder, "romfs")
+            }
             if(File(currentFolder, "spec_win").exists()) {
                 currentFolder = File(currentFolder, "spec_win")
             }
+            if(File(currentFolder, "spec_switch").exists()) {
+                currentFolder = File(currentFolder, "spec_switch")
+            }
             if(File(currentFolder, "chara.memfs").exists()) {
+                return currentFolder
+            }
+            if(File(currentFolder, "chara").exists()) {
                 return currentFolder
             }
             return null
