@@ -11,7 +11,7 @@ class RboxFile(dataSource: RandomAccessFile, offset: Long) {
     data class SequenceInstance(val duration: Int, val frameInstances: IntArray)
     data class FrameInstance(val unk1: Int, val boxes: IntArray)
     data class BoxInstance(val duration: Int, val valid: Boolean, val type: Int, val params: List<Int>?, val attack: AttackDef?)
-    data class AttackDef(val unk1: List<Int>, val unk2: List<Float>, val unk3: List<Int>, val unk4: List<Int>, val damage: Int )
+    data class AttackDef(val unk1: List<Int>, val unk2: List<Float>, val unk3: List<Int>, val unk4: List<Int>, val damage: Int, val onHit: Int, val onBlock: Int )
 
     val sequenceLabels = ArrayList<Int>()
     val frameInstances = ArrayList<FrameInstance>()
@@ -144,11 +144,13 @@ fun RandomAccessFile.readBoxInstance(): RboxFile.BoxInstance {
                 System.out.println("Read attack type")
                 val unk1 = listOf(readIntLe(), readIntLe(), readIntLe(), readIntLe(), readIntLe())
                 val unk2 = listOf(Float.fromBits(readIntLe()), Float.fromBits(readIntLe()), Float.fromBits(readIntLe()))
-                val unk3 = listOf(readShortLe(), readShortLe(), readShortLe(), readShortLe(), readShortLe(), readShortLe())
+                val onHitFrames = readShortLe()
+                val onBlockFrames = readShortLe()
+                val unk3 = listOf(readShortLe(), readShortLe(), readShortLe(), readShortLe())
                 val damage = readShortLe()
                 val unk4 = listOf(readIntLe(), readIntLe())
                 val unk5 = readShortLe()
-                attack = RboxFile.AttackDef(unk1 = unk1, unk2 = unk2, unk3 = unk3, unk4 = unk4, damage = damage)
+                attack = RboxFile.AttackDef(unk1 = unk1, unk2 = unk2, unk3 = unk3, unk4 = unk4, damage = damage, onHit = onHitFrames, onBlock = onBlockFrames)
             }
             else -> {
                 System.out.println("Found type $type - Count is $nSubDefs")

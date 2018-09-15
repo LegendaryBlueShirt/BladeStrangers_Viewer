@@ -188,6 +188,19 @@ class BSFrameDataProvider(bsHome: File): FrameDataProvider, FrameRenderer {
                         val boxinstance = rbox!!.boxInstances[box]
                         if(boxinstance == activeBox) {
                             g.fill = Color(1.0,0.0,0.0,1.0)
+                            if(boxinstance.type == 0x38) {
+                                boxinstance.attack?.let { attack ->
+                                    val totalFrames = seq.getFramecount()
+                                    val onHitAdvantage = attack.onHit - totalFrames + frame.getStartTime() + 1
+                                    val onBlockAdvantage = attack.onBlock - totalFrames + frame.getStartTime() + 1
+                                    g.fillText("Damage - ${attack.damage}", 300.0, 20.0)
+                                    g.fillText("On Hit ${String.format("%+d",onHitAdvantage)}", 300.0, 35.0)
+                                    g.fillText("On Block ${String.format("%+d",onBlockAdvantage)}", 300.0, 50.0)
+                                    for (m in attack.unk3.indices) {
+                                        g.fillText("${attack.unk3[m]}", 30.0 + 50 * m, 500.0)
+                                    }
+                                }
+                            }
                         } else {
                             g.fill = Color(1.0,1.0,1.0,1.0)
                         }
