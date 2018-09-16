@@ -1,6 +1,7 @@
 package com.justnopoint.bladestrangers
 
 import java.io.RandomAccessFile
+import kotlin.experimental.and
 
 class RboxFile(dataSource: RandomAccessFile, offset: Long) {
     companion object {
@@ -11,7 +12,7 @@ class RboxFile(dataSource: RandomAccessFile, offset: Long) {
     data class SequenceInstance(val duration: Int, val frameInstances: IntArray)
     data class FrameInstance(val unk1: Int, val boxes: IntArray)
     data class BoxInstance(val duration: Int, val valid: Boolean, val type: Int, val params: List<Int>?, val attack: AttackDef?)
-    data class AttackDef(val unk1: List<Int>, val unk2: List<Float>, val unk3: List<Int>, val unk4: List<Int>, val damage: Int, val onHit: Int, val onBlock: Int )
+    data class AttackDef(val unk1: ByteArray, val unk2: List<Float>, val unk3: List<Int>, val unk4: List<Int>, val damage: Int, val onHit: Int, val onBlock: Int, val powergain: Int )
 
     val sequenceLabels = ArrayList<Int>()
     val frameInstances = ArrayList<FrameInstance>()
@@ -142,15 +143,16 @@ fun RandomAccessFile.readBoxInstance(): RboxFile.BoxInstance {
             }
             0x38 -> {
                 System.out.println("Read attack type")
-                val unk1 = listOf(readIntLe(), readIntLe(), readIntLe(), readIntLe(), readIntLe())
+                val flags = ByteArray(20)
+                read(flags)
                 val unk2 = listOf(Float.fromBits(readIntLe()), Float.fromBits(readIntLe()), Float.fromBits(readIntLe()))
                 val onHitFrames = readShortLe()
                 val onBlockFrames = readShortLe()
                 val unk3 = listOf(readShortLe(), readShortLe(), readShortLe(), readShortLe())
                 val damage = readShortLe()
-                val unk4 = listOf(readIntLe(), readIntLe())
-                val unk5 = readShortLe()
-                attack = RboxFile.AttackDef(unk1 = unk1, unk2 = unk2, unk3 = unk3, unk4 = unk4, damage = damage, onHit = onHitFrames, onBlock = onBlockFrames)
+                val powergain = readShortLe()
+                val unk4 = listOf(readShortLe(), readShortLe(), readShortLe(), readShortLe())
+                attack = RboxFile.AttackDef(unk1 = flags, unk2 = unk2, unk3 = unk3, unk4 = unk4, damage = damage, onHit = onHitFrames, onBlock = onBlockFrames, powergain = powergain)
             }
             else -> {
                 System.out.println("Found type $type - Count is $nSubDefs")
@@ -172,4 +174,11 @@ fun RandomAccessFile.readBox(): RboxFile.Box {
     val v4 = Float.fromBits(readIntLe())
     val point3 = Float.fromBits(readIntLe())
     return RboxFile.Box(v1, v2, v3, v4)
+}
+
+fun RboxFile.AttackDef.isOverhead(): Boolean {
+    return (unk1[4].toInt() and 0x2) != 0
+}
+fun RboxFile.AttackDef.isLow(): Boolean {
+    return (unk1[4].toInt() and 0x4) != 0
 }
