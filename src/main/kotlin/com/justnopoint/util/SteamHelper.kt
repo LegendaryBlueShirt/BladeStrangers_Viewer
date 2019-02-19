@@ -1,18 +1,71 @@
 package com.justnopoint.util
 
-import java.io.IOException
-import java.io.StringWriter
-import java.io.File
-import java.io.InputStream
+import com.technofovea.hl2parse.vdf.SloppyParser
+import com.technofovea.hl2parse.vdf.ValveTokenLexer
+import com.technofovea.hl2parse.vdf.VdfRoot
+import org.antlr.runtime.ANTLRInputStream
+import org.antlr.runtime.CommonTokenStream
+import java.io.*
+import java.util.*
 
 
 object SteamHelper {
+    const val bsSteamID = 565170
+    const val bsAppManifest = "appmanifest_$bsSteamID.acf"
+    const val libraryManifest = "libraryfolders.vdf"
+
+    val libraryDirectory: File?
+        get() {
+            steamDirectory?.let { dir ->
+                val steamLibraries = ArrayList<File>()
+                val steamDirFile = File(dir)
+                steamLibraries.add(steamDirFile)
+                val libraryFile = File(steamDirFile, "SteamApps/$libraryManifest")
+                val dataRoot = doSloppyParse(FileInputStream(libraryFile))
+                dataRoot.children.find { it.name == "LibraryFolders" }?.let { libraryFoldersNode ->
+                    for (attribute in libraryFoldersNode.attributes) {
+                        when(attribute.name) {
+                            "TimeNextStatsReport", "ContentStatsID" -> {}
+                            else -> {
+                                steamLibraries.add(File(attribute.value))
+                            }
+                        }
+                    }
+                }
+
+                for(library in steamLibraries) {
+                    val appsfolder = File(library, "SteamApps")
+                    val manifest = appsfolder.listFiles { file ->
+                        return@listFiles (file.name == bsAppManifest)
+                    }.firstOrNull()
+                    if(manifest != null) {
+                        return library
+                    }
+                }
+            }
+            return null
+        }
+
     val bsDirectory: File?
         get() {
-            val steamDirectory = steamDirectory
-            return if (steamDirectory != null) {
-                val steamDirFile = File(steamDirectory)
-                File(steamDirFile, "SteamApps/common/Blade Strangers")
+            val libraryDirectory = libraryDirectory
+            return if (libraryDirectory != null) {
+                val manifest = appManifest
+                val dataRoot = doSloppyParse(FileInputStream(manifest))
+                val installDir = dataRoot.children.find { it.name == "AppState" }?.let { libraryFoldersNode ->
+                   libraryFoldersNode.attributes.find { it.name == "installdir" }?.value?:"Blade Strangers"
+                }
+                File(libraryDirectory, "SteamApps/common/$installDir")
+            } else {
+                null
+            }
+        }
+
+    val appManifest: File?
+        get() {
+            val libraryDirectory = libraryDirectory
+            return if (libraryDirectory != null) {
+                File(libraryDirectory, "SteamApps/$bsAppManifest")
             } else {
                 null
             }
@@ -63,8 +116,17 @@ object SteamHelper {
         }
     }
 
+    fun doSloppyParse(inputStream: InputStream): VdfRoot {
+        val ais = ANTLRInputStream(inputStream)
+        val lexer = ValveTokenLexer(ais)
+        val parser = SloppyParser(CommonTokenStream(lexer))
+        return parser.main()
+    }
+
     @JvmStatic
     fun main(s: Array<String>) {
         println("Steam directory : " + steamDirectory!!)
+        println("Library directory : $libraryDirectory")
+        println("BS directory : $bsDirectory")
     }
 }

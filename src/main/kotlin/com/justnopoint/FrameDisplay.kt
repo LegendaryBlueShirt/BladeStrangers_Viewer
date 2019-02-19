@@ -30,6 +30,7 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import java.io.IOException
 import javafx.scene.control.ButtonType
+import java.lang.Exception
 import java.util.*
 import java.util.concurrent.CountDownLatch
 
@@ -242,6 +243,7 @@ class FrameDisplay: Application() {
 fun main(args: Array<String>) {
     Application.launch(FrameDisplay::class.java, *args)
     //sprDump()
+    //imgDump()
 }
 
 fun test() {
@@ -267,6 +269,48 @@ fun test() {
                 }
             }
         }
+    }
+}
+
+fun imgDump() {
+    val outFolder = File("output")
+    outFolder.mkdir()
+    val file = File("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Blade Strangers\\fsroot\\spec_win")
+    val adv = MemoryArchive.get(File(file, "adv.memfs"))
+    for(n in 0 until adv.getNumFiles()) {
+        val outfile = File(outFolder, adv.getFilename(n))
+        outfile.parentFile?.mkdirs()
+        val bytes = adv.getFileBytes(n)
+        try {
+            val output = FileOutputStream(outfile)
+            output.use {
+                it.write(bytes)
+            }
+        }catch (e: Exception) {}
+    }
+    val ssdata = MemoryArchive.get(File(file, "ssdata.memfs"))
+    for(n in 0 until ssdata.getNumFiles()) {
+        val outfile = File(outFolder, ssdata.getFilename(n))
+        outfile.parentFile?.mkdirs()
+        val bytes = ssdata.getFileBytes(n)
+        try {
+            val output = FileOutputStream(outfile)
+            output.use {
+                it.write(bytes)
+            }
+        }catch (e: Exception) {}
+    }
+    val ui = MemoryArchive.get(File(file, "ui.memfs"))
+    for(n in 0 until ui.getNumFiles()) {
+        val outfile = File(outFolder, ui.getFilename(n))
+        outfile.parentFile?.mkdirs()
+        val bytes = ui.getFileBytes(n)
+        try {
+            val output = FileOutputStream(outfile)
+            output.use {
+                it.write(bytes)
+            }
+        }catch (e: Exception) {}
     }
 }
 

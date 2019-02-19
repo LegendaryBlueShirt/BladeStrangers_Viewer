@@ -55,6 +55,9 @@ fun getSequenceName(label: Int): String {
         2900 -> "Throw Attempt"
         2910 -> "Throw Success"
         2920 -> "Throw Whiff"
+        7100 -> "LE"
+        7150 -> "8LE/j.LE"
+        7200 -> "4LE"
         else -> label.toString()
     }
 }

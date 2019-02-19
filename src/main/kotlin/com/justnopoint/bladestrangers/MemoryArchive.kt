@@ -63,7 +63,7 @@ class MemoryArchive(memfs: File, membody: File): FileSystem {
             fsInput.skipBytes(1)
         }
         files = (0 until count).map { MemFile(names[it], offsets[it], sizes[it]) }
-        fileSystem = files.map { it.fname.substring(1).trim() to it }.toMap()
+        fileSystem = files.map { it.fname.substring(0).trim() to it }.toMap()
     }
 
     fun getNumFiles(): Int = files.size
@@ -77,6 +77,16 @@ class MemoryArchive(memfs: File, membody: File): FileSystem {
 
     private fun getFile(path: String): MemFile? {
         return fileSystem[path]
+    }
+
+    fun getFileBytes(index: Int): ByteArray {
+        val memfile = getFile(index)
+        memfile?.let {
+            archive.seek(memfile.offset)
+            val array = ByteArray(memfile.size)
+            archive.read(array)
+            return array
+        }?:return ByteArray(0)
     }
 
     fun getFile(index: Int): MemFile? {

@@ -76,8 +76,8 @@ class BSFrameDataProvider(bsHome: File): FrameDataProvider, FrameRenderer {
             return
         }
         sprites.clear()
-        rani = archive.getRaniFile("${character.tag}.rani")
-        rbox = archive.getRboxFile("${character.tag}.rbox")
+        rani = archive.getRaniFile("/${character.tag}.rani")
+        rbox = archive.getRboxFile("/${character.tag}.rbox")
     }
 
     override fun getSequences(): List<Sequence> {
@@ -195,6 +195,7 @@ class BSFrameDataProvider(bsHome: File): FrameDataProvider, FrameRenderer {
                                     val onHitAdvantage = attack.onHit - totalFrames + frame.getStartTime() + 1
                                     val onBlockAdvantage = attack.onBlock - totalFrames + frame.getStartTime() + 1
                                     g.fillText("Damage - ${attack.damage}", 300.0, 20.0)
+                                    g.fillText("Scaling - ${attack.getDamageScaling()}%", 400.0, 20.0)
                                     g.fillText("Hitstun ${attack.onHit}", 300.0, 35.0)
                                     g.fillText("Blockstun ${attack.onBlock}", 300.0, 50.0)
                                     g.fillText("Power Gain ${attack.powergain}", 300.0, 65.0)
@@ -213,9 +214,7 @@ class BSFrameDataProvider(bsHome: File): FrameDataProvider, FrameRenderer {
                                     for (m in attack.unk3.indices) {
                                         g.fillText("${attack.unk3[m]}", 30.0 + 50 * m, 515.0)
                                     }
-                                    for (m in attack.unk4.indices) {
-                                        g.fillText("${attack.unk4[m]}", 30.0 + 50 * m, 530.0)
-                                    }
+                                    g.fillText(bytesToHex(attack.unk4), 30.0, 530.0)
                                 }
                             }
                         } else {

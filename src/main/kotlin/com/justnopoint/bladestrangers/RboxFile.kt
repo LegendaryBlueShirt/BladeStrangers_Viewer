@@ -12,7 +12,7 @@ class RboxFile(dataSource: RandomAccessFile, offset: Long) {
     data class SequenceInstance(val duration: Int, val frameInstances: IntArray)
     data class FrameInstance(val unk1: Int, val boxes: IntArray)
     data class BoxInstance(val duration: Int, val valid: Boolean, val type: Int, val params: List<Int>?, val attack: AttackDef?)
-    data class AttackDef(val unk1: ByteArray, val unk2: List<Float>, val unk3: List<Int>, val unk4: List<Int>, val damage: Int, val onHit: Int, val onBlock: Int, val powergain: Int )
+    data class AttackDef(val unk1: ByteArray, val unk2: List<Float>, val unk3: List<Int>, val unk4: ByteArray, val damage: Int, val onHit: Int, val onBlock: Int, val powergain: Int )
 
     val sequenceLabels = ArrayList<Int>()
     val frameInstances = ArrayList<FrameInstance>()
@@ -151,8 +151,9 @@ fun RandomAccessFile.readBoxInstance(): RboxFile.BoxInstance {
                 val unk3 = listOf(readShortLe(), readShortLe(), readShortLe(), readShortLe())
                 val damage = readShortLe()
                 val powergain = readShortLe()
-                val unk4 = listOf(readShortLe(), readShortLe(), readShortLe(), readShortLe())
-                attack = RboxFile.AttackDef(unk1 = flags, unk2 = unk2, unk3 = unk3, unk4 = unk4, damage = damage, onHit = onHitFrames, onBlock = onBlockFrames, powergain = powergain)
+                val vars2 = ByteArray(8)
+                read(vars2)
+                attack = RboxFile.AttackDef(unk1 = flags, unk2 = unk2, unk3 = unk3, unk4 = vars2, damage = damage, onHit = onHitFrames, onBlock = onBlockFrames, powergain = powergain)
             }
             else -> {
                 System.out.println("Found type $type - Count is $nSubDefs")
@@ -181,4 +182,7 @@ fun RboxFile.AttackDef.isOverhead(): Boolean {
 }
 fun RboxFile.AttackDef.isLow(): Boolean {
     return (unk1[4].toInt() and 0x4) != 0
+}
+fun RboxFile.AttackDef.getDamageScaling(): Int {
+    return unk4[2].toInt()
 }
